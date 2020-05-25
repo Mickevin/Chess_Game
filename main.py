@@ -4,7 +4,12 @@ import json
 import pandas as pd
 import numpy as np
 from IPython.display import display
+from datetime import *
 
+def t():
+    n = datetime.now().strftime("%S"":%f")
+    n = datetime.strptime(n, '%S:%f')
+    return n
 
 class Piece():
         def __init__(self, name, color, pic,force=0, val = 0):
@@ -827,6 +832,13 @@ def main(l):
             return df_mouve.reset_index()
     return df_mouve.reset_index()
 
+t0 = t()
+n = 0
 d = main(m[0])
 for i in range(1,len(m)):
+    print(t()-t0)
     d = pd.concat([d,main(m[i])],axis=0)
+    n += 1
+    d.to_csv('data_save.csv', index=False)
+    print(n)
+    print(t()-t0)
