@@ -5,13 +5,9 @@ import pandas as pd
 import numpy as np
 from IPython.display import display
 from datetime import *
-
-<<<<<<< HEAD
-=======
+import pickle
 
 print('Start')
-
->>>>>>> 06841f447517e080a516e4e28a66a77f052b3933
 
 class Piece():
         def __init__(self, name, color, pic,force=0, val = 0):
@@ -770,22 +766,9 @@ def features(partie, deck,list_mouve,a,b,c,d,n_coup):
     return df_f
 
 
-pd.options.mode.chained_assignment = None  # default='warn'
-
-df = pd.read_csv('games.csv')
-df['winner'] = df['winner'].replace('white', 0).replace('black', 1)
-df = df[df['winner'] == 1]
-Mouves = pd.DataFrame(df.moves)
-
-for n in range(len(Mouves)):
-    Mouves.moves.iloc[n] = Mouves.moves.iloc[n].split()
-
-Mouves = Mouves.reset_index()
-m = Mouves.moves
-
 vide = Piece('vide','0',' __ ',0)
-list_mouve = []
 
+list_mouve = []
 for i in range(8):
     for u in range(8):
         list_mouve.append((u,i))
@@ -835,6 +818,10 @@ def main(l):
     return df_mouve.reset_index()
 
 
+with open("chess_data", 'rb') as f:
+    data = pickle.load(f)
+
+m = list(data[0])
 t0 = datetime.now()
 n = 0
 d = main(m[0])
@@ -843,8 +830,4 @@ for i in range(1,len(m)):
     d = pd.concat([d,main(m[i])],axis=0)
     n += 1
     d.to_csv('data_save.csv', index=False)
-<<<<<<< HEAD
     print(n)
-=======
-    print(n)
->>>>>>> 06841f447517e080a516e4e28a66a77f052b3933
