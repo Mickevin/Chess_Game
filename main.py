@@ -6,6 +6,12 @@ import numpy as np
 from IPython.display import display
 from datetime import *
 
+<<<<<<< HEAD
+=======
+
+print('Start')
+
+>>>>>>> 06841f447517e080a516e4e28a66a77f052b3933
 
 class Piece():
         def __init__(self, name, color, pic,force=0, val = 0):
@@ -837,4 +843,8 @@ for i in range(1,len(m)):
     d = pd.concat([d,main(m[i])],axis=0)
     n += 1
     d.to_csv('data_save.csv', index=False)
+<<<<<<< HEAD
     print(n)
+=======
+    print(n)
+>>>>>>> 06841f447517e080a516e4e28a66a77f052b3933

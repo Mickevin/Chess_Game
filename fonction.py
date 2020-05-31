@@ -67,37 +67,37 @@ def transforme(piece,c):
         if c == "N":
             piece.name = 'N'
             piece.pic  = '♞'
-            self.val = 25
+            piece.val = 25
         elif c == "Q":
             piece.name = 'Q'
             piece.pic = '♛'
-            self.val = 31
+            piece.val = 31
         elif c == "B":
             piece.name = 'B'
             piece.pic = '♝'
-            self.val = 29
+            piece.val = 29
         elif c == "R":
             piece.name = 'R'
             piece.pic = '♜'
-            self.val = 27
+            piece.val = 27
         return piece
     else:
         if c == "N":
             piece.name = 'N'
             piece.pic  = '♘'
-            self.val = 9
+            piece.val = 9
         elif c == "Q":
             piece.name = 'Q'
             piece.pic = '♕'
-            self.val = 15
+            piece.val = 15
         elif c == "B":
             piece.name = 'B'
             piece.pic = '♗'
-            self.val = 13
+            piece.val = 13
         elif c == "R":
             piece.name = 'R'
             piece.pic = '♖'
-            self.val = 11
+            piece.val = 11
         return piece
 
 
