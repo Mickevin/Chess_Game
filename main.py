@@ -8,6 +8,7 @@ from datetime import *
 import pickle
 
 print('Start')
+pd.options.mode.chained_assignment = None 
 
 class Piece():
         def __init__(self, name, color, pic,force=0, val = 0):
@@ -795,12 +796,7 @@ def main(l):
             dff = features(partie,deck,list_mouve,a,b,c,d,n)
             #print(a,b,c,d), print(n, len(deck))      
             df_mouve = pd.concat([df_mouve,dff],axis=0)
-            
-            partie[c][d]=partie[a][b]
-            partie[c][d].x = c
-            partie[c][d].y = d
-            partie[a][b] = vide
-        else: return df_mouve.reset_index()
+
         if a == b == c == d == 9:
             return df_mouve.reset_index()
         
@@ -815,13 +811,18 @@ def main(l):
         if a == b == c == d == 0:
             print('error')
             return df_mouve.reset_index()
+                    
+        partie[c][d]=partie[a][b]
+        partie[c][d].x = c
+        partie[c][d].y = d
+        partie[a][b] = vide
     return df_mouve.reset_index()
 
 
 with open("chess_data", 'rb') as f:
     data = pickle.load(f)
 
-m = list(data[0])
+m = list(data[0])[:1000]
 t0 = datetime.now()
 n = 0
 d = main(m[0])
@@ -829,5 +830,5 @@ for i in range(1,len(m)):
     print(datetime.now()-t0)
     d = pd.concat([d,main(m[i])],axis=0)
     n += 1
-    d.to_csv('data_save.csv', index=False)
+    d.to_csv('data_save1.csv', index=False)
     print(n)
