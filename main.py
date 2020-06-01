@@ -793,9 +793,10 @@ def main(l):
         if n <= len(l):
             deck = deck_chess(partie)
             a,b,c,d = where(i, deck[0],n,partie)
-            dff = features(partie,deck,list_mouve,a,b,c,d,n)
-            #print(a,b,c,d), print(n, len(deck))      
-            df_mouve = pd.concat([df_mouve,dff],axis=0)
+            if n%2 == 0:
+                dff = features(partie,deck,list_mouve,a,b,c,d,n)
+                #print(a,b,c,d), print(n, len(deck))      
+                df_mouve = pd.concat([df_mouve,dff],axis=0)
 
         if a == b == c == d == 9:
             return df_mouve.reset_index()
