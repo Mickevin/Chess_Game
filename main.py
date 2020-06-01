@@ -657,6 +657,8 @@ def predict(partie,a,b,c,d,list_mouve,df_f,n):
     
 def features(partie, deck,list_mouve,a,b,c,d,n_coup):
     
+
+    partie_test = partie.copy()
     chess_features = np.array(['val', # Id de la pièce #OK
                                'n',   # Nombre de coup depuis le dévut de la partie #OK
                                'coup',# I mage de la pièce #OK
@@ -700,7 +702,7 @@ def features(partie, deck,list_mouve,a,b,c,d,n_coup):
     for piece in deck[0]:        
         for u in list_mouve:         
             # Vérification des coups possibls
-            if good_mouve_pièce(piece.x, piece.y,u[0],u[1], partie):
+            if good_mouve_pièce(piece.x, piece.y,u[0],u[1], partie_test):
                 df_f.loc[n,'val'] = piece.val
                 
                 df_f.loc[n,'coup'] = n_coup # Coup depuis le début de la partie
@@ -735,10 +737,10 @@ def features(partie, deck,list_mouve,a,b,c,d,n_coup):
                         df_f.loc[n,'Chess_bad'] = 1                
                 
                 if n_coup % 2 == 0 and piece.color == 'B':
-                    predict(partie,piece.x, piece.y,u[0],u[1],list_mouve,df_f,n)
+                    predict(partie_test,piece.x, piece.y,u[0],u[1],list_mouve,df_f,n)
                 
                 elif n_coup % 2 != 0 and piece.color == 'W':
-                    predict(partie,piece.x, piece.y,u[0],u[1],list_mouve,df_f,n)
+                    predict(partie_test,piece.x, piece.y,u[0],u[1],list_mouve,df_f,n)
                 
                 n +=1
    
@@ -812,7 +814,8 @@ def main(l):
         if a == b == c == d == 0:
             print('error')
             return df_mouve.reset_index()
-                    
+               
+        good_mouve_pièce(a, b, c, d, partie)
         partie[c][d]=partie[a][b]
         partie[c][d].x = c
         partie[c][d].y = d
@@ -823,9 +826,9 @@ def main(l):
 with open("chess_data", 'rb') as f:
     data = pickle.load(f)
 
-m = list(data[0])[90:1000]
+m = list(data[0])[:1000]
 t0 = datetime.now()
-n = 90
+n = 0
 d = main(m[90])
 for i in range(1,len(m)):
     print(datetime.now()-t0)
