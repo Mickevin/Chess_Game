@@ -822,13 +822,13 @@ def main(l):
 with open("chess_data", 'rb') as f:
     data = pickle.load(f)
 
-m = list(data[0])[:1000]
+m = list(data[0])[90:1000]
 t0 = datetime.now()
-n = 0
-d = main(m[0])
+n = 90
+d = main(m[90])
 for i in range(1,len(m)):
     print(datetime.now()-t0)
     d = pd.concat([d,main(m[i])],axis=0)
     n += 1
-    d.to_csv('data_save1.csv', index=False)
+    d.to_csv('data_save1.1.csv', index=False)
     print(n)
