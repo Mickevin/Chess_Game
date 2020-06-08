@@ -20,6 +20,8 @@ class Piece():
             self.lib = 0
             self.val = val
             self.safe = True
+            self.protect = False
+            self.will_protect = False
         
         def __repr__(self):
             return self.pic
@@ -236,28 +238,37 @@ def correct_mouve(n, partie):#Vérification de la validité du mouvement
             return a,b,c,d,n
     else : return a,b,c,d,n
 
-def good_mouve_pièce(x1,y1,x2,y2,partie):
+def good_mouve_pièce(x1,y1,x2,y2,partie,protect = False, will_protect= False, T = False):
     vide = Piece('vide','0',' __ ',0)
+    
+    
     #Pions Blancs
     if partie[x1][y1].color == 'W' and partie[x1][y1].name == 'P':
         if x1 == x2 and  partie[x2][y2].name == vide.name and y1 == y2 + 1: 
             #if y2 == 0 :
-             #   partie[x1][y1] = choose_w(partie[x1][y1])
-            if y2 == 1:
-                partie[x1][y1].force = 7
+             #  partie[x1][y1] = choose_w(partie[x1][y1])
+            if y2 == 1: partie[x1][y1].force = 7
             return True
+        
         elif x1 == x2 and y1 == 6 and y2 == 4 and partie[x2][y2].name == vide.name and partie[x1][5].name == vide.name: 
             if y2 == 1:
                 partie[x1][y1].force = 7
             #if y2 == 0 :
             #    partie[x1][y1] = choose_w(partie[x1][y1])
             return True 
-        elif y2 == y1 - 1 and (x2 == x1 + 1 or x2 == x1 - 1) and partie[x2][y2].color == 'B':
-            if y2 == 1:
-                partie[x1][y1].force = 7
-            return True
-                #if y2 == 0 :
-                 #   partie[x1][y1] = choose_w(partie[x1][y1])
+        
+        elif y2 == y1 - 1 and (x2 == x1 + 1 or x2 == x1 - 1):
+            if partie[x2][y2].color == 'W':
+                if protect and partie[x2][y2].color == partie[x1][y1].color: partie[x2][y2].protect = True
+                if will_protect and partie[x2][y2].color == partie[x1][y1].color: partie[x2][y2].will_protect = True
+                return False
+            
+            elif partie[x2][y2].color == 'B':
+                if y2 == 1:
+                    partie[x1][y1].force = 7
+                return True
+                    #if y2 == 0 :
+                     #   partie[x1][y1] = choose_w(partie[x1][y1])
         try :
             if partie[x2][y2+1].name == 'P' and  partie[x2][y2].name == vide.name and partie[x2][y2+1].color == 'B' and y2 == y1 - 1:
                 partie[x2][y2+1] = vide
@@ -266,7 +277,7 @@ def good_mouve_pièce(x1,y1,x2,y2,partie):
                 return True
         except KeyError:
             return False 
-
+        return False
         
     #Pions Noirs
     elif partie[x1][y1].color == 'B' and partie[x1][y1].name == 'P' :
@@ -282,8 +293,14 @@ def good_mouve_pièce(x1,y1,x2,y2,partie):
             if y2 == 6:
                 partie[x1][y1].force = 7
             return True 
+        
         elif y2 == y1 + 1 and (x2 == x1 + 1 or x2 == x1 - 1):
-            if partie[x2][y2].color == 'W':
+            if partie[x2][y2].color == 'B':
+                if will_protect and partie[x2][y2].color == partie[x1][y1].color: partie[x2][y2].will_protect = True
+                if protect and partie[x2][y2].color == partie[x1][y1].color: partie[x2][y2].protect = True
+                return False
+            
+            elif partie[x2][y2].color == 'W':
                 if y2 == 6:
                     partie[x1][y1].force = 7
                 #if y2 == 7:
@@ -297,66 +314,101 @@ def good_mouve_pièce(x1,y1,x2,y2,partie):
                 return True
         except KeyError:
             return False
+        return False
     
 
     
-    #Tours Blancs
-    elif partie[x1][y1].name == 'R' and (partie[x1][y1].color != partie[x2][y2].color or partie[x2][y2].name == vide.name):
+    #Tours
+    elif partie[x1][y1].name == 'R':
         if x1 == x2:
             if y2 < y1:
                 i = y1 - 1
-                while i > y2:
-                    if partie[x1][i].name != vide.name: return False
+                while i >= y2:
+                    if partie[x1][i].color == partie[x1][y1].color: 
+                        if will_protect : partie[x1][i].will_protect = True
+                        if protect : partie[x1][i].protect = True
+                        return False
+                    if partie[x1][i].name != vide.name and i != y2: return False
                     i = i-1
                 return True
             if y2 > y1:
                 i = y1 + 1
-                while i < y2:
-                    if partie[x1][i].name != vide.name: return False
+                while i <= y2:
+                    if partie[x1][i].color == partie[x1][y1].color: 
+                        if will_protect : partie[x1][i].will_protect = True
+                        if protect : partie[x1][i].protect = True
+                        return False
+                    if partie[x1][i].name != vide.name and i != y2: return False
                     i = i+1
                 return True
+            return False
+        
         elif y1 == y2:
             if x2 < x1:
                 i = x1 - 1
-                while i > x2:
-                    if partie[i][y1].name != vide.name: return False
+                while i >= x2:
+                    if partie[i][y1].color == partie[x1][y1].color: 
+                        if will_protect : partie[i][y1].will_protect = True
+                        if protect : partie[i][y1].protect = True
+                        return False
+                    if partie[i][y1].name != vide.name and i != x2: return False
                     i = i-1
                 return True
             if x2 > x1:
                 i = x1 + 1
-                while i < x2:
-                    if partie[i][y1].name != vide.name: return False
+                while i <= x2:
+                    if partie[i][y1].color == partie[x1][y1].color:
+                        if will_protect : partie[i][y1].will_protect = True
+                        if protect : partie[i][y1].protect = True
+                        return False
+                    if partie[i][y1].name != vide.name and i != x2: return False
                     i = i+1
                 return True
+        return False
     
     
     #Queen Rock
-    elif partie[x1][y1].name == 'Q' and (partie[x1][y1].color != partie[x2][y2].color 
-                                         or partie[x2][y2].name == vide.name):
+    elif partie[x1][y1].name == 'Q':
         if x1 == x2:
             if y2 < y1:
                 i = y1 - 1
-                while i > y2:
-                    if partie[x1][i].name != vide.name: return False
+                while i >= y2:
+                    if partie[x1][i].color == partie[x1][y1].color:
+                        if will_protect : partie[x1][i].will_protect = True
+                        if protect : partie[x1][i].protect = True
+                        return False
+                    if partie[x1][i].name != vide.name and i != y2: return False
                     i = i-1
                 return True
             if y2 > y1:
                 i = y1 + 1
-                while i < y2:
-                    if partie[x1][i].name != vide.name: return False
+                while i <= y2:
+                    if partie[x1][i].color == partie[x1][y1].color:
+                        if will_protect : partie[x1][i].will_protect = True
+                        if protect : partie[x1][i].protect = True
+                        return False
+                    if partie[x1][i].name != vide.name and i != y2: return False
                     i = i+1
                 return True
         elif y1 == y2:
             if x2 < x1:
                 i = x1 - 1
-                while i > x2:
-                    if partie[i][y1].name != vide.name: return False
+                while i >= x2:
+                    if partie[i][y1].color == partie[x1][y1].color:
+                        if will_protect : partie[i][y1].will_protect = True
+                        if protect : partie[i][y1].protect = True
+                        return False
+                    if partie[i][y1].name != vide.name and i != x2: return False
                     i = i-1
                 return True
             if x2 > x1:
                 i = x1 + 1
-                while i < x2:
-                    if partie[i][y1].name != vide.name: return False
+                while i <= x2:
+                    if partie[i][y1].color == partie[x1][y1].color:
+                        if will_protect : partie[i][y1].will_protect = True
+                        if protect :partie[i][y1].protect = True
+                        return False
+                    if partie[i][y1].name != vide.name and i != x2: return False
                     i = i+1
                 return True
         
@@ -365,114 +417,165 @@ def good_mouve_pièce(x1,y1,x2,y2,partie):
             if (y2 - y1)/(x2 - x1) == 1:
                 if x1 < x2:
                     i,j = x1 +1,y1+1
-                    while i < x2 :
-                        if partie[i][j].name != vide.name: 
+                    while i <= x2 :
+                        if partie[i][j].color == partie[x1][y1].color:
+                            if will_protect : partie[i][j].will_protect = True
+                            if protect : partie[i][j].protect = True                        
                             return False
+                        if partie[i][j].name != vide.name and j != y2: return False
                         i,j = i+1,j+1
                     return True
-                if x1 > x2:
+                elif x1 > x2:
                     i,j = x1 - 1,y1 - 1
-                    while i > x2 :
-                        if partie[i][j].name != vide.name:
+                    while i >= x2 :
+                        if partie[i][j].color == partie[x1][y1].color:
+                            if will_protect : partie[i][j].will_protect = True
+                            if protect : partie[i][j].protect = True                        
                             return False
+                        if partie[i][j].name != vide.name and j != y2: return False
                         i,j = i-1,j-1
                     return True
 
-            
             elif (y2 - y1)/(x2 - x1) == -1:
                 if x1 < x2:
                     i,j = x1 +1,y1-1
-                    while i < x2 :
-                        if partie[i][j].name != vide.name: return False
+                    while i <= x2 :
+                        if partie[i][j].color == partie[x1][y1].color:
+                            if will_protect : partie[i][j].will_protect = True
+                            if protect : partie[i][j].protect = True                        
+                            return False
+                        if partie[i][j].name != vide.name and j != y2: return False
                         i,j = i+1,j-1
                     return True
-                if x1 > x2:
+                elif x1 > x2:
                     i,j = x1 - 1,y1 + 1
-                    while i > x2 :
-                        if partie[i][j].name != vide.name: return False
+                    while i >= x2 :
+                        if partie[i][j].color == partie[x1][y1].color:
+                            if will_protect : partie[i][j].will_protect = True
+                            if protect : partie[i][j].protect = True                        
+                            return False
+                        if partie[i][j].name != vide.name and j != y2: return False
                         i,j = i-1,j+1
                     return True
-        
+        return False
+    
+    
     
     #Roi
-    elif partie[x1][y1].name == 'K' and (partie[x2][y2].color != partie[x1][y1].color 
-                                         or partie[x2][y2].name == vide.name):
+    elif partie[x1][y1].name == 'K':
         if x1 == x2 + 1 or x1 == x2 - 1:
-            if y1 == y2 or y1 == y2 - 1 or y1 == y2 + 1: return True
+            if y1 == y2 or y1 == y2 - 1 or y1 == y2 + 1: 
+                if partie[x2][y2].color == partie[x1][y1].color:
+                    if will_protect : partie[x2][y2].will_protect = True
+                    if protect : partie[x2][y2].protect = True
+                    return False
+                return True
             else : return False
         elif x1 == x2:
-            if y1 == y2 - 1 or y1 == y2 + 1: return True
+            if y1 == y2 - 1 or y1 == y2 + 1: 
+                if partie[x2][y2].color == partie[x1][y1].color:
+                    if will_protect : partie[x2][y2].will_protect = True
+                    if protect : partie[x2][y2].protect = True
+                    return False
+                return True
         
         
         #Rock Black
         elif partie[x1][y1].color == "B":
             if x2 == 6 and y2 == 0 and partie[7][0].name == 'R': #small Rock
                 if  partie[5][0].name == partie[6][0].name == vide.name:
-                    partie[5][0] = partie[7][0]
-                    partie[7][0] = vide
+                    if T:
+                        partie[5][0] = partie[7][0]
+                        partie[7][0] = vide
                     return True
             if x2 == 2 and y2 == 0 and partie[0][0].name == 'R': #big Rock
                 if partie[3][0].name == partie[2][0].name == partie[1][0].name == vide.name:
-                    partie[3][0] = partie[0][0]
-                    partie[0][0] = vide
+                    if T:
+                        partie[3][0] = partie[0][0]
+                        partie[0][0] = vide
                     return True
         
         #Rock White        
         elif partie[x1][y1].color == "W":
             if x2 == 6 and y2 == 7 and partie[7][7].name == 'R': #small Rock
                 if partie[5][7].name == partie[6][7].name == vide.name:
-                    partie[5][7] = partie[7][7]
-                    partie[7][7] = vide
+                    if T:
+                        partie[5][7] = partie[7][7]
+                        partie[7][7] = vide
                     return True
             
             if x2 == 2 and y2 == 7 and partie[0][0].name == 'R': #big Rock
                 if partie[3][7].name == partie[2][7].name == partie[1][7].name == vide.name:
-                    partie[3][7] = partie[0][7]
-                    partie[0][7] = vide
+                    if T:
+                        partie[3][7] = partie[0][7]
+                        partie[0][7] = vide
                     return True
+        return False
     
     #Cavalier
-    elif partie[x1][y1].name == 'N' and (partie[x2][y2].color != partie[x1][y1].color 
-                                         or partie[x2][y2].name == vide.name):
+    elif partie[x1][y1].name == 'N':
         if x1 == x2 - 1 or x1 == x2 + 1:
-            if y1 == y2 - 2 or y1 == y2 + 2: 
+            if y1 == y2 - 2 or y1 == y2 + 2:
+                if partie[x2][y2].color == partie[x1][y1].color:
+                    if will_protect : partie[x2][y2].will_protect = True
+                    if protect : partie[x2][y2].protect = True
+                    return False
                 return True
         elif y1 == y2 - 1 or y1 == y2 + 1:
-            if x1 == x2 - 2 or x1 == x2 + 2: 
+            if x1 == x2 - 2 or x1 == x2 + 2:
+                if partie[x2][y2].color == partie[x1][y1].color:
+                    if will_protect : partie[x2][y2].will_protect = True
+                    if protect : partie[x2][y2].protect = True
+                    return False
                 return True
-    
+        return False
     
     #Fou 
-    elif partie[x1][y1].name == 'B' and x1 != x2 and(partie[x2][y2].color != partie[x1][y1].color or partie[x2][y2].name == vide.name):
+    elif partie[x1][y1].name == 'B' and x1 != x2:
         if (y2 - y1)/(x2 - x1) == 1:
             if x1 < x2:
                 i,j = x1 +1,y1+1
-                while i < x2 :
-                    if partie[i][j].name != vide.name: 
+                while i <= x2 :
+                    if partie[i][j].color == partie[x1][y1].color:
+                        if will_protect : partie[i][j].will_protect = True
+                        if protect : partie[i][j].protect = True                        
                         return False
+                    if partie[i][j].name != vide.name and j != y2: return False
                     i,j = i+1,j+1
                 return True
             elif x1 > x2:
                 i,j = x1 - 1,y1 - 1
-                while i > x2 :
-                    if partie[i][j].name != vide.name:
+                while i >= x2 :
+                    if partie[i][j].color == partie[x1][y1].color:
+                        if will_protect : partie[i][j].will_protect = True
+                        if protect : partie[i][j].protect = True                        
                         return False
+                    if partie[i][j].name != vide.name and j != y2: return False
                     i,j = i-1,j-1
                 return True
 
         elif (y2 - y1)/(x2 - x1) == -1:
             if x1 < x2:
                 i,j = x1 +1,y1-1
-                while i < x2 :
-                    if partie[i][j].name != vide.name: return False
+                while i <= x2 :
+                    if partie[i][j].color == partie[x1][y1].color:
+                        if will_protect : partie[i][j].will_protect = True
+                        if protect : partie[i][j].protect = True                        
+                        return False
+                    if partie[i][j].name != vide.name and j != y2: return False
                     i,j = i+1,j-1
                 return True
             elif x1 > x2:
                 i,j = x1 - 1,y1 + 1
-                while i > x2 :
-                    if partie[i][j].name != vide.name: return False
+                while i >= x2 :
+                    if partie[i][j].color == partie[x1][y1].color:
+                        if will_protect : partie[i][j].will_protect = True
+                        if protect : partie[i][j].protect = True                        
+                        return False
+                    if partie[i][j].name != vide.name and j != y2: return False
                     i,j = i-1,j+1
                 return True
+        return False
     return False
 
 def deck_chess(partie):
@@ -526,7 +629,7 @@ def where(player, deck,n, partie, T=True): #Quelle pièce est jouée ?
         return 9,9,9,9
 
 
-############################################    #Recherche des pions#   ###############################################
+  ############################################    #Recherche des pions#   ###############################################
    
     if len(player) == 2:
         for i in deck:
@@ -552,7 +655,7 @@ def where(player, deck,n, partie, T=True): #Quelle pièce est jouée ?
                     return i.x, i.y,mouve(p)[0],mouve(p)[1]
 
                 
-############################################    #Recherche des des autres pièces#   ###################################
+  ############################################    #Recherche des des autres pièces#   ###################################
     
     elif player[0] in selection and '=' not in player:
         for i in deck:
@@ -580,7 +683,7 @@ def where(player, deck,n, partie, T=True): #Quelle pièce est jouée ?
 
                     
 
-############################################         #Rock#        ####################################################
+  ############################################         #Rock#        ####################################################
     
     elif player == "O-O":
         for i in deck:
@@ -600,7 +703,7 @@ def where(player, deck,n, partie, T=True): #Quelle pièce est jouée ?
                 if good_mouve_pièce(i.x,i.y,2,7,partie) == True and i.color == C:
                     return 4,7,2,7
                 
-############################################         #RPion transformation#        ####################################
+  ############################################         #RPion transformation#        ####################################
                 
     
     elif "=" in player:
@@ -620,8 +723,10 @@ def predict(partie,a,b,c,d,list_mouve,df_f,n,deck):
     
     
     if partie_predict[c][d].name != vide.name:
-        deck_p = [i for i in deck_p if i != partie_predict[c][d]]      
+        deck_p = [i for i in deck_p if i != partie_predict[c][d]]
     
+    for i in deck_p:
+        i.will_protect = False
         
     partie_predict[c][d] = partie_predict[a][b]
     partie_predict[c][d].x = c
@@ -634,10 +739,11 @@ def predict(partie,a,b,c,d,list_mouve,df_f,n,deck):
     
     
     p_warning_w = p_warning_b = p_area_w = p_area_b = kill = liberté = force_global_w = force_global_b = 0
+    sum_will_protect = 0
     
     for piece in deck_p:
         for u in list_mouve:            
-            if good_mouve_pièce(piece.x, piece.y, u[0], u[1], partie_predict):
+            if good_mouve_pièce(piece.x, piece.y, u[0], u[1], partie_predict, protect=False, will_protect = True):
                 
                 if piece.color == 'W': # Zone des pièces Blanches
                     p_area_w += 1
@@ -648,10 +754,11 @@ def predict(partie,a,b,c,d,list_mouve,df_f,n,deck):
                                         
                     if partie_predict[u[0]][u[1]].name != vide.name: # Nombre de pièces Noires en danger
                         p_warning_b += 1
+                        force_global_b -= partie_predict[u[0]][u[1]].force
                     
-                    if partie_predict[u[0]][u[1]].name == 'K' and piece.color == partie_predict[c][d].color: #Echech au Roi
+                    if partie_predict[u[0]][u[1]].name == 'K': #Echech au Roi
                         df_f.loc[n,'p_Chess_bad'] = 1
-                
+                df_f.loc[n,'Will_protect'] = int(partie_predict[c][d].will_protect)
                 
                 if piece.color == 'B': # Zone des Pièces Noires
                     p_area_b += 1 
@@ -660,22 +767,25 @@ def predict(partie,a,b,c,d,list_mouve,df_f,n,deck):
                     if piece.val == partie_predict[c][d].val: # Zone de liberté future
                         liberté += 1
                    
-                    if partie_predict[u[0]][u[1]].name != vide.name: # Nombre de kill future possible
-                        kill += 1
+                        if partie_predict[u[0]][u[1]].name != vide.name: # Nombre de kill future possible
+                            kill += 1
+                            df_f.loc[n,'p_Will_Kill_Id'] += partie_predict[u[0]][u[1]].force
                     
                     if partie_predict[u[0]][u[1]].name != vide.name: # Nombre de pièces Blanches en danger
                         p_warning_w += 1
+                        force_global_w -= partie_predict[u[0]][u[1]].force
                         
                     if partie_predict[u[0]][u[1]].name == 'K': #Echec au roi adverse
                         df_f.loc[n,'p_Chess_good'] = 1      
- 
+
 
     df_f.loc[n,'p_Step'] = liberté #Ok
     df_f.loc[n,'p_Will_Kill'] = kill
-    
+
     
     for p in deck_p: # Quelles sont les pièce sur le terrain
-        df_f.loc[n,f"p{p.val}"] = p.x*10 +p.y
+        df_f.loc[n,f"p{p.val}"] = p.force/10
+        if p.color == 'B' : sum_will_protect += int(p.will_protect) 
 
     df_f.loc[n,'p_Area_w'] = p_area_w
     df_f.loc[n,'p_Area_b'] = p_area_b
@@ -683,6 +793,7 @@ def predict(partie,a,b,c,d,list_mouve,df_f,n,deck):
     df_f.loc[n,'p_Warning_b'] = p_warning_b  
     df_f.loc[n,'Force_global_w'] = force_global_w
     df_f.loc[n,'Force_global_b'] = force_global_b
+    df_f.loc[n,'sum_will_protect'] = sum_will_protect
     
     partie_predict[c][d].x = a
     partie_predict[c][d].y = b
@@ -711,9 +822,13 @@ featurs_name = ['val', # Id de la pièce #OK
                                'Color',
                                'Force_global_w',
                                'Force_global_b',
+                                'Protected', # La pièce est-elle protégé ?
+                                'Will_protect',
+                                'sum_will_protect',
                                
                                'p_Step', # Zode de liberté prédite de la pièce #OK
-                               'p_Will_Kill', # Le coups prédit pourra-t-il éliminé une pièce 1:Oui, 0: NON #OK
+                               'p_Will_Kill', # Nombre de pièce menacée par cette position
+                                'p_Will_Kill_Id',# Somme des forcce des pièce menancées
                                'p_warning_position', # La case est-elle sure ? 0:Oui 1:Non #OK
                                'p_Chess_bad', 
                                'p_Chess_good', 
@@ -735,13 +850,15 @@ def features(partie, deck,list_mouve,a,b,c,d,n_coup):
     n = echec = 0
     df_f = pd.DataFrame(columns=chess_features)
     Warning_w = Warning_b = Area_w = Area_b = 0
-    for piece in deck[0]:
-        piece.safe = True
+    for l in deck[0]:
+        l.safe = True
+        l.protect = False
+        l.will_protect = False
 
     for piece in deck[0]:
         for u in list_mouve:         
             # Vérification des coups possibls
-            if good_mouve_pièce(piece.x, piece.y,u[0],u[1], partie_test):
+            if good_mouve_pièce(piece.x, piece.y,u[0],u[1], partie_test,protect = True,will_protect=False):
                 
                 if piece.color == 'W':
                     Area_w += 1
@@ -773,9 +890,8 @@ def features(partie, deck,list_mouve,a,b,c,d,n_coup):
                     df_f.loc[n,'Force'] = piece.force
                     
                     df_f.loc[n,'Color'] = 1
-                    
+                    df_f = df_f.fillna(0)
                     predict(partie_test,piece.x, piece.y,u[0],u[1],list_mouve,df_f,n,deck) # Prédiction des coups futures
-                
                 
                     if piece.x == a and piece.y == b and u[0] == c and u[1] == d: # Le mouvement est-il celui joué ?
                         df_f.loc[n,'Play_target'] = 1
@@ -793,14 +909,17 @@ def features(partie, deck,list_mouve,a,b,c,d,n_coup):
                 n +=1
    
     for p in deck[0]: # Quelles sont les pièce sur le terrain et leur coordonées
-        df_f[f"{p.val}"] = p.x*10 +p.y
+        df_f[f"{p.val}"] = p.force/10
         df_f.loc[:,'Step'][df_f.val == p.val] =  len(df_f[df_f['val'] == p.val]) #Nombre de coup jouable par la pièce
         p.lib = len(df_f[df_f['val'] == p.val])
 
         if p.safe == False:
             df_f.loc[:,'Safe_position'][df_f.val == p.val] = 1 # Les pièce sont-elle en sécurité sur leur case ?
+        
+        if p.protect:
+            df_f.loc[:,'Protected'][df_f.val == p.val] = int(p.protect) # Les pièce sont-elle en sécurité sur leur case ?
     
-    df_f = df_f.fillna(0)
+    
 
     df_f['Area_w'] = Area_w
     df_f['Area_b'] = Area_b
@@ -810,7 +929,7 @@ def features(partie, deck,list_mouve,a,b,c,d,n_coup):
     
     df_f = df_f[df_f.Color == 1]
 
-    return df_f
+    return df_f.reset_index()
 
 
 list_mouve = []
@@ -820,6 +939,7 @@ for i in range(8):
 
 def main(l):   
     partie = run()
+    print(len(l))
     n = 0
     chess_features = np.array(featurs_name)
     df_mouve = pd.DataFrame(columns=chess_features) 
@@ -833,11 +953,42 @@ def main(l):
                 dff = features(partie,deck,list_mouve,a,b,c,d,n)
                 df_mouve = pd.concat([df_mouve,dff],axis=0)
 
-                """display(dff[['n','val','Coordonées','Destination','Step',
-                        'Will_Kill','Will_Kill_Id','Safe_position',
-                        'Warning_w','Warning_b','Area_w','Area_b','Force',
-                        'p_Step','p_Will_Kill','p_warning_position', 
-                        'p_Warning_w','p_Warning_b','p_Area_w','p_Area_b','Play_target']])"""
+                """display(dff[['n','val', # Id de la pièce #OK
+                               'Coordonées', # Coordonnées initiales de la pièce #OK
+                               'Destination', # Coordonées de destination #OK
+                               'Step',    # Zode de liberté de la pièce #OK
+                               'Will_Kill', # Le coups élimine une pièce 1:Oui, 0: NON #OK
+                               'Will_Kill_Id', #Quelle est la pièce menacé
+                               'Safe_position', # Les coordonée actuelle sont-ils surs ? 0:oui, 1:NON #OK
+                               'Chess_bad', # Le roi est-il en echec ? 1: oui; 0:Non #OK
+                               'Chess_good', # Le roi adverse est-il en echec ? 1: oui; 0:Non #OK
+                               'Warning_w', # Nombre de pièce blance menacée  #OK
+                               'Warning_b', # Nombre de pièce noire menacée  #OK
+                               'Area_w', # Nombre de coups jouable Blanc #OK
+                               'Area_b', # Nombre de coups jouable noir #OK
+                               'Force', # Force de la pièce #OK 
+                               'Force_global_w',
+                               'Force_global_b',
+                                'Protected', # La pièce est-elle protégé ?
+                                'Will_protect',
+                                'sum_will_protect']])
+                display(dff[['n',   
+                            'p_Step', # Zode de liberté prédite de la pièce #OK
+                            'p_Will_Kill', # Le coups prédit pourra-t-il éliminé une pièce 1:Oui, 0: NON #OK
+                            'p_warning_position', # La case est-elle sure ? 0:Oui 1:Non #OK
+                            'p_Will_Kill_Id',
+                    
+                            'p_Chess_bad', 
+                            'p_Chess_good', 
+                            'p_Warning_w', # Nombre de pièces Noires en danger #OK
+                            'p_Warning_b', # Nombre de pièces Blanches en danger #OK
+                            'p_Area_w', # Zone future des pièces Blanches #OK
+                            'p_Area_b',# Zone future des pièces Noires #OK
+                            'p_Nb_w', # Nombre futur pièce blanches #OK
+                            'p_Nb_b', # Nombre future des pièces noires #OK
+                            'Play_target', # Le coup jouable est-il joué ? #OK
+                              
+                ]])"""
             
             if a == b == c == d == 9:
                 return df_mouve.reset_index()
@@ -847,14 +998,32 @@ def main(l):
         if a == b == c == d == 0:
             print('error')
             return df_mouve.reset_index()
-        good_mouve_pièce(a, b, c, d, partie)
+        good_mouve_pièce(a, b, c, d, partie, T = True)
         partie[c][d]=partie[a][b]
         partie[c][d].x = c
         partie[c][d].y = d
         partie[a][b] = vide
+        #print(i)
         #affiche(partie)
     return df_mouve.reset_index()
 
+def run_data(z):
+    with open("chess_data_win", 'rb') as f:
+        data = pickle.load(f)
+
+    
+    m = list(data)
+    t0 = datetime.now()
+    print('Starting process : ', t0 )
+    n = 0
+    d = main(m[0])
+    for i in range(1,len(m[0:z])):
+        print(datetime.now()-t0)
+        d = pd.concat([d,main(m[i])],axis=0).reset_index()
+        n += 1
+        d.to_csv('data_save.csv', index=False)
+        print(n)
+    return d
 
 def run_game():
     partie = run()
@@ -868,11 +1037,10 @@ def run_game():
         if n_coup%2 != 0:
             df = features(partie, deck,list_mouve,a,b,c,d,n_coup-1)
             X = df.drop(['n','Play_target', 'coup'],axis=1)
-            display(df[['n','Force','val','coup','Coordonées','Destination','Step',
+            display(df[['n','Force','val','Coordonées','Destination','Step',
                         'Will_Kill','Will_Kill_Id','Safe_position',
                         'Warning_w','Warning_b','Area_w','Area_b', 'Force'
-                        'p_Step','p_Will_Kill','p_warning_position', 
-                        'p_Warning_w','p_Warning_b','p_Area_w','p_Area_b','Play_target']])
+                        'p_Step','p_Will_Kill','p_warning_position', 'Force_global_w','Force_global_b','Play_target']])
             
             pred_arg = xg.predict(X,output_margin=True).argmax()
             
@@ -892,21 +1060,5 @@ def run_game():
         affiche(partie)
         n_coup += 1
 
-def run_data():
-    with open("chess_data", 'rb') as f:
-        data = pickle.load(f)
 
-    
-    m = list(data[0])
-    t0 = datetime.now()
-    print('Starting process : ', t0 )
-    n = 0
-    d = main(m[0])
-    for i in range(1,len(m)):
-        print(datetime.now()-t0)
-        d = pd.concat([d,main(m[i])],axis=0)
-        n += 1
-        d.to_csv('data_save.csv', index=False)
-        print(n)
-
-run_data()
+run_data(500)
