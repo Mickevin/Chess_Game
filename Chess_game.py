@@ -1,8 +1,14 @@
-from PIL import ImageTk, Image
-from tkinter import *
+from multiprocessing import Process
 from run import *
-import webbrowser
 
+
+if __name__=='__main__':
+    p = Process(target=features)
+    p.start()
+    p.join()
+
+with open('model_xg', 'rb') as f:
+    xg = pickle.load(f)
 
 class playing():
     def __init__(self):
@@ -10,32 +16,48 @@ class playing():
         pass
     
     def play(self,x,y):
-        a.append((x,y))
-        if len(a)%2 == 0:
-            x1 = a[:-3:-1][1][0]
-            y1 = a[:-3:-1][1][1]
+        
+        if coups.n%2 == 0:
+            a.append((x,y))
+            if len(a)%2 == 0:
+                x1 = a[:-3:-1][1][0]
+                y1 = a[:-3:-1][1][1]
 
-            x2 = a[:-3:-1][0][0]
-            y2 = a[:-3:-1][0][1]
-            print(x1,y1,x2,y2)
-            if good_mouve_pièce(x1, y1, x2, y2, partie):
-                if coups.n%2 == 0 and partie[x1][y1].color == 'W':
-                    good_mouve_pièce(x1, y1, x2, y2, partie, T=True)
-                    partie[x2][y2] = partie[x1][y1]
-                    partie[x1][y1] = vide
-                    coups.n +=1
-                    deck = deck_chess(partie)
-                    jeu(deck)
-                    window.update()
-                    
-                if coups.n%2 != 0 and partie[x1][y1].color == 'B':
-                    good_mouve_pièce(x1, y1, x2, y2, partie, T=True)
-                    partie[x2][y2] = partie[x1][y1]
-                    partie[x1][y1] = vide
-                    coups.n +=1
-                    deck = deck_chess(partie)
-                    jeu(deck)
-                    window.update()
+                x2 = a[:-3:-1][0][0]
+                y2 = a[:-3:-1][0][1]
+                print(x1,y1,x2,y2)
+                if good_mouve_pièce(x1, y1, x2, y2, partie) and partie[x1][y1].color == 'W':
+                        good_mouve_pièce(x1, y1, x2, y2, partie, T=True)
+                        partie[x2][y2] = partie[x1][y1]
+                        partie[x1][y1] = vide
+                        coups.n +=1
+                        deck = deck_chess(partie)
+                        jeu(deck)
+                        window.update()
+                        
+                        if coups.n%2 != 0:
+                            print("let's go")
+                        
+                            df = features(partie, deck,list_mouve,x1,y1,x2,y2,coups.n-1)
+                            print('OK')
+                            X = df.drop(['n','Play_target', 'coup'],axis=1)
+                            X_pred = df.drop(['n','Play_target', 'coup', 'Coordonées', 'Destination', 'index'],axis=1)
+                            display(df)
+                            pred_arg = xg.predict(X_pred,output_margin=True).argmax()
+
+                            x1 = int(X.iloc[pred_arg].Coordonées/10)
+                            y1 = int(X.iloc[pred_arg].Coordonées%10)
+                            x2 = int(X.iloc[pred_arg].Destination/10)
+                            y2 = int(X.iloc[pred_arg].Destination%10)
+                            if good_mouve_pièce(x1, y1, x2, y2, partie, T=True):
+                                partie[x2][y2] = partie[x1][y1]
+                                partie[x1][y1] = vide
+                                coups.n +=1
+                                deck = deck_chess(partie)
+                                jeu(deck)
+                                window.update()
+                            else :
+                                print('KO')
 
 def open_web():
     webbrowser.open_new('https://github.com/Mickevin')
@@ -66,12 +88,16 @@ def position(x,y, piece, grid):
     canvas.grid(row=y, column=x)
     
     if x%2 == 0:
-        if y%2 == 0: grid[x][y] = Button(canvas, bg='black', command=affiche_c(x,y), image=piece.img)
-        else: grid[x][y] = Button(canvas, bg='white', command=affiche_c(x,y), image=piece.img)
+        if y%2 == 0: grid[x][y] = Button(canvas, bg='black', command=affiche_c(x,y), 
+                                         image=dic_img[piece.pic])
+        else: grid[x][y] = Button(canvas, bg='white', command=affiche_c(x,y), 
+                                  image=dic_img[piece.pic])
     
     else:
-        if y%2 != 0: grid[x][y] = Button(canvas, bg='black', command=affiche_c(x,y), image=piece.img)
-        else: grid[x][y] = Button(canvas, bg='white', command=affiche_c(x,y), image=piece.img)
+        if y%2 != 0: grid[x][y] = Button(canvas, bg='black', command=affiche_c(x,y), 
+                                         image=dic_img[piece.pic])
+        else: grid[x][y] = Button(canvas, bg='white', command=affiche_c(x,y), 
+                                  image=dic_img[piece.pic])
     
     grid[x][y].pack()
     return grid[x][y]
@@ -100,8 +126,10 @@ partie = run()
 deck = deck_chess(partie)
 
 
-for i in deck[0]:
-    i.img = ImageTk.PhotoImage(i.img)
+dic_img = {}
+
+for img in deck[0]:
+    dic_img[img.pic]=ImageTk.PhotoImage(Image.open(img.img).resize([70,60]))
 
     
 frame = Frame(window,bg = "#7446EB")
@@ -120,5 +148,6 @@ def jeu(deck):
 
 
 jeu(deck)
+
 chess_grid.pack(expand=True,ipady=60)
 window.mainloop()

@@ -1,15 +1,18 @@
-import random
-import os
-import json
+from IPython.display import display
+from tkinter import *
+from PIL import ImageTk, Image
+from datetime import *
 import pandas as pd
 import numpy as np
-from IPython.display import display
-from datetime import *
+import webbrowser
+import random
 import pickle
-from PIL import ImageTk, Image
+import json
+import os
 
 print('Start')
 pd.options.mode.chained_assignment = None
+
 class Piece():
         def __init__(self, name, color, pic,force=0, val = 0, img="chess/Space.png"):
             self.name = name
@@ -23,7 +26,7 @@ class Piece():
             self.safe = True
             self.protect = False
             self.will_protect = False
-            self.img = Image.open(img).resize([70,60])
+            self.img = img #Image.open(img).resize([70,60])
         
         def __repr__(self):
             return self.pic
@@ -245,14 +248,14 @@ def good_mouve_pièce(x1,y1,x2,y2,partie,protect = False, will_protect= False, T
     
     
     #Pions Blancs
-    if partie[x1][y1].color == 'W' and partie[x1][y1].name == 'P': #avance d'une case
+    if partie[x1][y1].color == 'W' and partie[x1][y1].name == 'P':
         if x1 == x2 and  partie[x2][y2].name == vide.name and y1 == y2 + 1: 
             #if y2 == 0 :
              #  partie[x1][y1] = choose_w(partie[x1][y1])
             if y2 == 1: partie[x1][y1].force = 7
             return True
         
-        elif x1 == x2 and y1 == 6 and y2 == 4 and partie[x2][y2].name == vide.name and partie[x1][5].name == vide.name: #Avance de deux cases
+        elif x1 == x2 and y1 == 6 and y2 == 4 and partie[x2][y2].name == vide.name and partie[x1][5].name == vide.name: 
             if y2 == 1:
                 partie[x1][y1].force = 7
             #if y2 == 0 :
@@ -260,7 +263,7 @@ def good_mouve_pièce(x1,y1,x2,y2,partie,protect = False, will_protect= False, T
             return True 
         
         elif y2 == y1 - 1 and (x2 == x1 + 1 or x2 == x1 - 1):
-            if partie[x2][y2].color == 'W':#kill
+            if partie[x2][y2].color == 'W':
                 if protect and partie[x2][y2].color == partie[x1][y1].color: partie[x2][y2].protect = True
                 if will_protect and partie[x2][y2].color == partie[x1][y1].color: partie[x2][y2].will_protect = True
                 return False
@@ -272,9 +275,8 @@ def good_mouve_pièce(x1,y1,x2,y2,partie,protect = False, will_protect= False, T
                     #if y2 == 0 :
                      #   partie[x1][y1] = choose_w(partie[x1][y1])
         try :
-            if partie[x2][y2+1].name == 'P' and  partie[x2][y2].name == vide.name and partie[x2][y2+1].color == 'B' and y2 == y1 - 1 and y2 == 2: #coup en passant
-                if T:
-                    partie[x2][y2+1] = vide
+            if partie[x2][y2+1].name == 'P' and  partie[x2][y2].name == vide.name and partie[x2][y2+1].color == 'B' and y2 == y1 - 1:
+                partie[x2][y2+1] = vide
                 if y2 == 1:
                     partie[x1][y1].force = 7
                 return True
@@ -310,9 +312,8 @@ def good_mouve_pièce(x1,y1,x2,y2,partie,protect = False, will_protect= False, T
                  #   partie[x1][y1] = choose_b(partie[x1][y1])
                 return True
         try :
-            if partie[x1][y2-1].name == 'P' and  partie[x2][y2].name == vide.name and partie[x2][y2-1].color == 'W' and y2 == y1 +1 and y2 == 5:
-                if T:
-                    partie[x2][y2-1] = vide
+            if partie[x1][y2-1].name == 'P' and  partie[x2][y2].name == vide.name and partie[x1][y2-1].color == 'W' and y2 == y1 +1:
+                partie[x1][y2-1] = vide
                 if y2 == 7:
                     partie[x1][y1].force = 7
                 return True
@@ -486,13 +487,13 @@ def good_mouve_pièce(x1,y1,x2,y2,partie,protect = False, will_protect= False, T
         
         #Rock Black
         elif partie[x1][y1].color == "B":
-            if x2 == 6 and y2 == 0 and partie[7][0].name == 'R': #small Rock
+            if x2 == 6 and y2 == 0 and partie[7][0].name == 'R' and x1==4 and y1 ==0: #small Rock
                 if  partie[5][0].name == partie[6][0].name == vide.name:
                     if T:
                         partie[5][0] = partie[7][0]
                         partie[7][0] = vide
                     return True
-            if x2 == 2 and y2 == 0 and partie[0][0].name == 'R': #big Rock
+            if x2 == 2 and y2 == 0 and partie[0][0].name == 'R'and x1==4 and y1 ==0: #big Rock
                 if partie[3][0].name == partie[2][0].name == partie[1][0].name == vide.name:
                     if T:
                         partie[3][0] = partie[0][0]
@@ -501,14 +502,14 @@ def good_mouve_pièce(x1,y1,x2,y2,partie,protect = False, will_protect= False, T
         
         #Rock White        
         elif partie[x1][y1].color == "W":
-            if x2 == 6 and y2 == 7 and partie[7][7].name == 'R': #small Rock
+            if x2 == 6 and y2 == 7 and partie[7][7].name == 'R'and x1==4 and y1 ==7: #small Rock
                 if partie[5][7].name == partie[6][7].name == vide.name:
                     if T:
                         partie[5][7] = partie[7][7]
                         partie[7][7] = vide
                     return True
             
-            if x2 == 2 and y2 == 7 and partie[0][0].name == 'R': #big Rock
+            if x2 == 2 and y2 == 7 and partie[0][0].name == 'R' and x1==4 and y1 ==7: #big Rock
                 if partie[3][7].name == partie[2][7].name == partie[1][7].name == vide.name:
                     if T:
                         partie[3][7] = partie[0][7]
@@ -732,7 +733,7 @@ def predict(partie,a,b,c,d,list_mouve,df_f,n,deck):
     for i in deck_p:
         i.will_protect = False
     
-    good_mouve_pièce(a, b, c, d, partie_predict, T= True)
+    good_mouve_pièce(a, b, c, d, partie_predict, T= True)  
     partie_predict[c][d] = partie_predict[a][b]
     partie_predict[c][d].x = c
     partie_predict[c][d].y = d
@@ -749,7 +750,6 @@ def predict(partie,a,b,c,d,list_mouve,df_f,n,deck):
     for piece in deck_p:
         for u in list_mouve:            
             if good_mouve_pièce(piece.x, piece.y, u[0], u[1], partie_predict, protect=False, will_protect = True):
-                
                 if piece.color == 'W': # Zone des pièces Blanches
                     p_area_w += 1
                     force_global_w += piece.force
@@ -861,10 +861,9 @@ def features(partie, deck,list_mouve,a,b,c,d,n_coup):
         l.will_protect = False
 
     for piece in deck[0]:
-        for u in list_mouve:         
+        for u in list_mouve:
             # Vérification des coups possibls
             if good_mouve_pièce(piece.x, piece.y,u[0],u[1], partie_test,protect = True,will_protect=False):
-                
                 if piece.color == 'W':
                     Area_w += 1
                     if partie_test[u[0]][u[1]].color == 'B':
@@ -958,7 +957,7 @@ def main(l):
                 dff = features(partie,deck,list_mouve,a,b,c,d,n)
                 df_mouve = pd.concat([df_mouve,dff],axis=0)
 
-                """display(dff[['n','val', # Id de la pièce #OK
+                display(dff[['n','val', # Id de la pièce #OK
                                'Coordonées', # Coordonnées initiales de la pièce #OK
                                'Destination', # Coordonées de destination #OK
                                'Step',    # Zode de liberté de la pièce #OK
@@ -993,7 +992,7 @@ def main(l):
                             'p_Nb_b', # Nombre future des pièces noires #OK
                             'Play_target', # Le coup jouable est-il joué ? #OK
                               
-                ]])"""
+                ]])
             
             if a == b == c == d == 9:
                 return df_mouve.reset_index()
@@ -1008,8 +1007,8 @@ def main(l):
         partie[c][d].x = c
         partie[c][d].y = d
         partie[a][b] = vide
-        #print(i)
-        #affiche(partie)
+        print(i)
+        affiche(partie)
     return df_mouve.reset_index()
 
 def run_data(z):
@@ -1042,12 +1041,9 @@ def run_game():
         if n_coup%2 != 0:
             df = features(partie, deck,list_mouve,a,b,c,d,n_coup-1)
             X = df.drop(['n','Play_target', 'coup'],axis=1)
-            display(df[['n','Force','val','Coordonées','Destination','Step',
-                        'Will_Kill','Will_Kill_Id','Safe_position',
-                        'Warning_w','Warning_b','Area_w','Area_b', 'Force'
-                        'p_Step','p_Will_Kill','p_warning_position', 'Force_global_w','Force_global_b','Play_target']])
-            
-            pred_arg = xg.predict(X,output_margin=True).argmax()
+            X_pred = df.drop(['n','Play_target', 'coup', 'Coordonées', 'Destination', 'index'],axis=1)
+            display(df)
+            pred_arg = xg.predict(X_pred,output_margin=True).argmax()
             
             a = int(X.iloc[pred_arg].Coordonées/10)
             b = int(X.iloc[pred_arg].Coordonées%10)
