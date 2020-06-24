@@ -10,7 +10,6 @@ import pickle
 import json
 import os
 
-print('Start')
 pd.options.mode.chained_assignment = None
 
 class Piece():
@@ -1012,7 +1011,7 @@ def main(l):
     return df_mouve.reset_index()
 
 def run_data(z):
-    with open("chess_data_win", 'rb') as f:
+    with open("data/chess_data_win", 'rb') as f:
         data = pickle.load(f)
 
     
@@ -1025,7 +1024,7 @@ def run_data(z):
         print(datetime.now()-t0)
         d = pd.concat([d,main(m[i])],axis=0).reset_index()
         n += 1
-        d.to_csv('data_save.csv', index=False)
+        d.to_csv('data/data_save.csv', index=False)
         print(n)
     return d
 

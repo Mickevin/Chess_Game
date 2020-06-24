@@ -1,13 +1,7 @@
-from multiprocessing import Process
+import xgboost as xg
 from run import *
 
-
-if __name__=='__main__':
-    p = Process(target=features)
-    p.start()
-    p.join()
-
-with open('model_xg', 'rb') as f:
+with open('data/model_xg', 'rb') as f:
     xg = pickle.load(f)
 
 class playing():
@@ -25,7 +19,6 @@ class playing():
 
                 x2 = a[:-3:-1][0][0]
                 y2 = a[:-3:-1][0][1]
-                print(x1,y1,x2,y2)
                 if good_mouve_pièce(x1, y1, x2, y2, partie) and partie[x1][y1].color == 'W':
                         good_mouve_pièce(x1, y1, x2, y2, partie, T=True)
                         partie[x2][y2] = partie[x1][y1]
@@ -35,14 +28,10 @@ class playing():
                         jeu(deck)
                         window.update()
                         
-                        if coups.n%2 != 0:
-                            print("let's go")
-                        
+                        if coups.n%2 != 0:                        
                             df = features(partie, deck,list_mouve,x1,y1,x2,y2,coups.n-1)
-                            print('OK')
                             X = df.drop(['n','Play_target', 'coup'],axis=1)
                             X_pred = df.drop(['n','Play_target', 'coup', 'Coordonées', 'Destination', 'index'],axis=1)
-                            display(df)
                             pred_arg = xg.predict(X_pred,output_margin=True).argmax()
 
                             x1 = int(X.iloc[pred_arg].Coordonées/10)
@@ -115,7 +104,7 @@ window.geometry("1000x800")
 #
 window.minsize(480,360)
 #
-window.iconbitmap("chess.ico")
+window.iconbitmap("chess/chess.ico")
 #
 window.config(background="#7446EB")
 
